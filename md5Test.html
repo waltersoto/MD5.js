@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Testing MD5.js</title>
+    <script src="MD5.js"></script>
+
+    <script type="text/javascript">
+
+        var test = [
+            {
+                "text": "The quick brown fox jumps over the lazy dog",
+                "value": "9e107d9d372bb6826bd81d3542a419d6"
+            },
+            {
+                "text": "", //zero length
+                "value": "d41d8cd98f00b204e9800998ecf8427e"
+            },
+            {
+                "text": "a",
+                "value": "0cc175b9c0f1b6a831c399e269772661"
+            },
+            {
+                "text": "The quick brown fox jumps over the lazy dog.",
+                "value": "e4d909c290d0fb1ca068ffaddf22cbd0"
+            },
+            {
+                "text": "md5 test",
+                "value": "2e5f9458bcd27e3c2b5908af0b91551a"
+            }
+        ];
+
+        window.onload = function () {
+
+            for (var i = 0; i < test.length; i++) {
+                if (test[i].value === md5(test[i].text)) {
+                    console.log('PASS: '+test[i].text);
+                } else {
+                    console.log('ERROR: ' + test[i].text);
+                }
+            }
+
+        };
+
+    </script>
+
+</head>
+<body>
+
+</body>
+</html>
