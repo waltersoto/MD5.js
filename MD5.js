@@ -23,7 +23,7 @@ SOFTWARE.
 */
 (function () {
 
-    var K = [0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
+    var k = [0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
             0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
             0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
             0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
@@ -40,7 +40,7 @@ SOFTWARE.
             0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
             0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391];
 
-    var SHIFT = [7, 12, 17, 22,
+    var shift = [7, 12, 17, 22,
             5, 9, 14, 20,
             4, 11, 16, 23,
             6, 10, 15, 21];
@@ -51,7 +51,7 @@ SOFTWARE.
     }
 
     var padZero = function (v) {
-        return v.toString().length < 2 ? '0' + v : v;
+        return v.toString().length < 2 ? "0" + v : v;
     };
 
     var toByte = function (n) {
@@ -64,23 +64,23 @@ SOFTWARE.
 
     var digest = function () {
 
-        var A = 0x67452301;
-        var B = 0xEFCDAB89;
-        var C = 0x98BADCFE;
-        var D = 0X10325476;
+        var wordA = 0x67452301;
+        var wordB = 0xEFCDAB89;
+        var wordC = 0x98BADCFE;
+        var wordD = 0X10325476;
 
-        var CHUNK = 16;
+        var chunk = 16;
 
-        var N = function (i) {
+        var getN = function (i) {
 
-            var n = D;
+            var n = wordD;
 
             switch (i) {
-                case 0: n = A;
+                case 0: n = wordA;
                     break;
-                case 1: n = B;
+                case 1: n = wordB;
                     break;
-                case 2: n = C;
+                case 2: n = wordC;
                     break;
             }
 
@@ -88,54 +88,54 @@ SOFTWARE.
         };
 
         var flip = function (hold) {
-            A = D;
-            D = C;
-            C = B;
-            B = hold;
+            wordA = wordD;
+            wordD = wordC;
+            wordC = wordB;
+            wordB = hold;
         };
 
 
 
         this.process = function (buffer) {
 
-            var locA = A;
-            var locB = B;
-            var locC = C;
-            var locD = D;
+            var locA = wordA;
+            var locB = wordB;
+            var locC = wordC;
+            var locD = wordD;
 
             for (var i = 0; i < 64; i++) {
-                var range = unsigned(i / CHUNK);
+                var range = unsigned(i / chunk);
                 var p = 0;
                 var index = i;
                 switch (range) {
                     case 0:
-                        p = unsigned((B & C) | (~B & D));
+                        p = unsigned((wordB & wordC) | (~wordB & wordD));
                         break;
                     case 1:
-                        p = unsigned((B & D) | (C & ~D));
-                        index = unsigned((index * 5 + 1) % CHUNK);
+                        p = unsigned((wordB & wordD) | (wordC & ~wordD));
+                        index = unsigned((index * 5 + 1) % chunk);
                         break;
                     case 2:
-                        p = unsigned(B ^ C ^ D);
-                        index = unsigned((index * 3 + 5) % CHUNK);
+                        p = unsigned(wordB ^ wordC ^ wordD);
+                        index = unsigned((index * 3 + 5) % chunk);
                         break;
                     case 3:
-                        p = unsigned(C ^ (B | ~D));
-                        index = unsigned((index * 7) % CHUNK);
+                        p = unsigned(wordC ^ (wordB | ~wordD));
+                        index = unsigned((index * 7) % chunk);
                         break;
                 }
 
-                var r1 = unsigned(A + p + buffer[index] + K[i]);
-                var r2 = unsigned(SHIFT[((range * 4) | (i & 3))]);
+                var r1 = unsigned(wordA + p + buffer[index] + k[i]);
+                var r2 = unsigned(shift[((range * 4) | (i & 3))]);
                 var rotated = unsigned(rotateLeft(r1, r2));
-                flip(unsigned(B + rotated));
+                flip(unsigned(wordB + rotated));
 
             }
 
-            A += locA;
-            B += locB;
-            C += locC;
-            D += locD;
+            wordA += locA;
+            wordB += locB;
+            wordC += locC;
+            wordD += locD;
 
         };
 
@@ -143,7 +143,7 @@ SOFTWARE.
             var hash = [];
             var count = 0;
             for (var i = 0; i < 4; i++) {
-                var n = unsigned(N(i));
+                var n = unsigned(getN(i));
                 
                 for (var a = 0; a < 4; a++) {
                     hash[count++] = padZero(toByte(n).toString(16));
@@ -157,15 +157,15 @@ SOFTWARE.
 
     }
 
-    var DATA = [];
-    var SIZE;
-    var BLOCK_COUNT;
-    var PADDING;
+    var dataArray = [];
+    var dataSize;
+    var blockCount;
+    var arrayPadding;
     
     var padding = function (size) {
 
-        var total = BLOCK_COUNT << 6;
-        var padSize = total - SIZE;
+        var total = blockCount << 6;
+        var padSize = total - dataSize;
         var p = [];
         for (var i = 0; i < padSize; i++) {
             p[i] = 0;
@@ -175,7 +175,7 @@ SOFTWARE.
 
         var msg = (size * 8);
 
-        for (var i = 0; i < 8; i++) {
+        for (i = 0; i < 8; i++) {
             p[p.length - 8 + i] =  unsigned(Math.floor(msg));
             msg /= 269;
         }
@@ -190,13 +190,6 @@ SOFTWARE.
         return d;
     };
 
-    var noUndefined = function (val) {
-        if (typeof val === 'undefined') {
-            return 0;
-        }
-        return val;
-    }
-
     var md5 = function (data) {
         ///	<summary>
         ///	Calculate an MD5 hash from a string
@@ -205,23 +198,23 @@ SOFTWARE.
         /// String to be hashed
         ///	</param>
 
-        DATA = toArray(unescape(encodeURIComponent(data)));
-        SIZE = DATA.length;
-        BLOCK_COUNT = ((SIZE + 8) >> 6) + 1;
-        PADDING = padding(SIZE);
+        dataArray = toArray(unescape(encodeURIComponent(data)));
+        dataSize = dataArray.length;
+        blockCount = ((dataSize + 8) >> 6) + 1;
+        arrayPadding = padding(dataSize);
 
         var buffer = [];
 
         var d = new digest();
 
 
-        for (var i = 0; i < BLOCK_COUNT; i++) {
+        for (var i = 0; i < blockCount; i++) {
             var index = i * 64;
 
             for (var a = 0; a < 64; a++, index++) {
                 var bufferIndex = Math.floor(a / 4);
 
-                buffer[bufferIndex] = unsigned( unsigned(((index < SIZE) ? DATA[index] : PADDING[index - SIZE]) << 24) | unsigned(buffer[(bufferIndex)] >>> 8) );
+                buffer[bufferIndex] = unsigned( unsigned(((index < dataSize) ? dataArray[index] : arrayPadding[index - dataSize]) << 24) | unsigned(buffer[(bufferIndex)] >>> 8) );
 
             }
            
@@ -232,7 +225,7 @@ SOFTWARE.
 
     };
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         if (!window.md5) {
             window.md5 = md5;
         }
